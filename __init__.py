@@ -5,7 +5,7 @@ from peewee import DoesNotExist
 import telebot
 import config
 from config import db
-from users import User, Role
+from users import User, Player, Role
 
 
 bot = telebot.TeleBot(token=config.token)
@@ -17,13 +17,15 @@ apihelper.proxy = {
 
 # create tables in db
 db.connect()
-db.create_tables([User])
+db.create_tables([User, Player])
 
+'''
 # create GOD if not exists
 try:
     god = User.get(User.tg_id == config.creatorID)
 except DoesNotExist:
     god = User.create(tg_id=config.creatorID, username=config.creatorUsername, name='Yury', role=Role.GOD)
+'''
 
 
 @bot.message_handler(commands=['start'])
