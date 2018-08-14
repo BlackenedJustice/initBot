@@ -1,11 +1,20 @@
 from telebot import types
 from telebot import apihelper
 from peewee import DoesNotExist
+from functools import wraps
+import logging
 
 import telebot
 import config
+from mwt import MWT
 from config import db
 from users import User, Player, Role
+
+
+logger = logging.getLogger('bot')
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 
 bot = telebot.TeleBot(token=config.token)
@@ -28,7 +37,29 @@ except DoesNotExist:
 '''
 
 
+@MWT(timeout=5*60)
+def get_privilege_ids(role):
+    logger.info("Update list of %s", role)
+    return [user.tg_id for user in User.select().where(User.role >= role)]
+
+
+def restricted(role):
+
+    def wrapper(func):
+        @wraps(func)
+        def wrapped(message, *args, **kwargs):
+            user_id = message.chat.id
+            if user_id not in get_privilege_ids(role):
+                logger.warning("Unauthorized access to <{}> by {}.".format(func.__name__, message.from_user.username))
+                return
+            return func(message, *args, **kwargs)
+        return wrapped
+
+    return wrapper
+
+
 @bot.message_handler(commands=['start'])
+@restricted(Role.GOD)
 def start_cmd(message):
 
     if message.chat.id == config.creatorID:
