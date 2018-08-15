@@ -9,7 +9,10 @@ import config
 from mwt import MWT
 from config import db
 from users import User, Player, Challenge, Role
+from timing import Timer
 
+timer = Timer(name='Round')
+timer.set_duration(12*60)
 
 logger = logging.getLogger('bot')
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -229,8 +232,50 @@ def make_challenge_cmd(message):
     bot.send_message(admin.tg_id, "You become an admin of " + challenge_name)
 
 
+@bot.message_handler(commands=['set_duration'])
+@restricted(Role.GOD)
+def set_duration_cmd(message):
+    if not check_text(message, set_duration_cmd):
+        return
+
+    if not message.text.isdigit():
+        bot.send_message(message.chat.id, 'Wrong format!\n/set_duration time(minutes)')
+        return
+    m = float(message.text)
+    timer.set_duration(m*60)
+    logger.info("Reset round's duration to {} mins by {}".format(m, message.from_user.username))
+    bot.send_message(message.chat.id, 'Success!')
+    
+
+@bot.message_handler(commands=['everyone'])
+@restricted(Role.ADMIN)
+def everyone_cmd(message):
+    if not check_text(message, everyone_cmd):
+        return
+
+    for user in User.select():
+        bot.send_message(user.tg_id, message.text)
+    bot.send_message(message.chat.id, 'Success!')
+
+
+@bot.message_handler(commands=['wall'])
+@restricted(Role.ADMIN)
+def wall_cmd(message):
+    if not check_text(message, wall_cmd):
+        return
+
+    for user in User.select().where(User.role != Role.PLAYER):
+        bot.send_message(user.tg_id, message.text)
+    bot.send_message(message.chat.id, 'Success!')
+
+
+@bot.message_handler(content_types=['sticker'])
+def echo_sticker(message):
+    bot.send_message(message.chat.id, 'Классный стикер!')
+
+
 @bot.message_handler(content_types=['text'])
-def foo(message):
+def echo_text(message):
     bot.send_message(message.chat.id, message.text)
 
 
