@@ -19,6 +19,9 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 logger.setLevel(logging.DEBUG)
 
+# To store chosen groups. Group: recipient
+transfers = {}
+
 
 bot = telebot.TeleBot(token=config.token)
 # using proxy in Russia
@@ -245,7 +248,71 @@ def set_duration_cmd(message):
     timer.set_duration(m*60)
     logger.info("Reset round's duration to {} mins by {}".format(m, message.from_user.username))
     bot.send_message(message.chat.id, 'Success!')
-    
+
+
+@bot.message_handler(commands=['transfer'])
+@restricted(Role.PLAYER)
+def transfer_cmd(message):
+    markup = types.ReplyKeyboardMarkup(row_width=1)
+    for player in Player.select().where(Player.tg_id != message.chat.id).order_by(Player.name):
+        markup.add(types.KeyboardButton(player.name))
+    bot.send_message(message.chat.id, config.chooseGroupForTransfer, reply_markup=markup)
+    bot.register_next_step_handler(message, transfer2)
+
+
+def transfer2(message):
+    if not check_text(message, transfer2):
+        return
+
+    if not message.text.isdecimal():
+        bot.send_message(message.chat.id, config.warningWrongDataFormat)
+        bot.register_next_step_handler(message, transfer2)
+        return
+
+    try:
+        recipient = Player.get(Player.name == message.text)
+    except DoesNotExist:
+        bot.send_message(message.chat.id, config.warningNoSuchGroup, reply_markup=types.ReplyKeyboardRemove())
+        return
+    transfers[message.from_user.username] = recipient
+    bot.send_message(message.chat.id, config.chooseTransferAmount, reply_markup=types.ReplyKeyboardRemove())
+    bot.register_next_step_handler(message, transfer3)
+
+
+def transfer3(message):
+    if not check_text(message, transfer3):
+        return
+    if not message.text.isdigit():
+        bot.send_message(message.chat.id, config.warningWrongDataFormat)
+        bot.register_next_step_handler(transfer3)
+        return
+    amount = int(message.text)
+    if amount <= 0:
+        bot.send_message(message.chat.id, config.warningWrongAmount)
+        bot.register_next_step_handler(transfer3)
+        return
+    try:
+        payer = Player.get(Player.tg_id == message.chat.id)
+    except DoesNotExist:
+        logger.critical("Can't find user - {} in database!".format(message.from_user.username))
+        bot.send_message('Критическая ошибка! Обратитесь к  организаторам')
+        return
+    if payer.energy < amount:
+        bot.send_message(message.chat.id, config.warningNotEnoughEnergy)
+        return
+    recipient = transfers.get(message.from_user.username)
+    if recipient is None:
+        logger.warning("Couldn't found a team! Asked by {}".format(message.from_user.username))
+        bot.send_message(message.chat.id, config.warningSmthWentWrongTransfer)
+        return
+    logger.info("Team {} has transferred {} energy to {} team".format(payer.name, amount, recipient.name))
+    payer.energy -= amount
+    recipient.energy += amount
+    payer.save()
+    recipient.save()
+    bot.send_message(payer.tg_id, 'Перевод совершен')
+    bot.send_message(recipient.tg_id, 'Команда {} перевела вам энергию ({})'.format(payer.name, amount))
+
 
 @bot.message_handler(commands=['everyone'])
 @restricted(Role.ADMIN)

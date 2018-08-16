@@ -20,7 +20,13 @@ greetings = 'Здравствуйте! Добро пожаловать на кв
 collectGroupNumber = 'Введите номер группы'
 successfulRegistration = 'Приятно познакомиться! Квест вот-вот начнется'
 adminsGreetings = 'Введите ваше имя'
+chooseGroupForTransfer = 'Пожалуйста, выберите группу, которой вы хотите перевести энергию'
+chooseTransferAmount = 'Пожалуйста, введите колличество энергии для перевода'
 
 warningWrongDataFormat = 'Неправильный формат данных!\nПопробуйте еще раз'
 warningGroupNumber = 'Номер группы должен быть числом!\nПопробуйте еще раз'
 warningTooLarge = 'Слишком неправильное число!\nПопробуйте еще раз'
+warningNoSuchGroup = 'Такой группы нет\nВыполните команду /transfer еще раз'
+warningWrongAmount = 'Число должно быть положительным!\nПопробуйте еще раз'
+warningNotEnoughEnergy = 'У вас недостаточно энергии для перевода'
+warningSmthWentWrongTransfer = 'Что-то пошло не так...\nВыполните команду /transfer еще раз'
