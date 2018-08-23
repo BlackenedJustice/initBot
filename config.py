@@ -22,6 +22,7 @@ successfulRegistration = 'Приятно познакомиться! Квест 
 adminsGreetings = 'Введите ваше имя'
 chooseGroupForTransfer = 'Пожалуйста, выберите группу, которой вы хотите перевести энергию'
 chooseTransferAmount = 'Пожалуйста, введите колличество энергии для перевода'
+enterArtifactCode = 'Введите код артефакта'
 
 warningWrongDataFormat = 'Неправильный формат данных!\nПопробуйте еще раз'
 warningGroupNumber = 'Номер группы должен быть числом!\nПопробуйте еще раз'

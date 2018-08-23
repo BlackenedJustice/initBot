@@ -22,13 +22,15 @@ logger.setLevel(logging.DEBUG)
 # To store chosen groups. Group: recipient
 transfers = {}
 
-
 bot = telebot.TeleBot(token=config.token)
+'''
 # using proxy in Russia
 apihelper.proxy = {
     'http': 'http://167.99.242.198:8080',
     'https': 'https://167.99.242.198:8080'
 }
+
+'''
 
 # create tables in db
 db.connect()
@@ -75,13 +77,14 @@ def check_text(message, func):
 
 @bot.message_handler(commands=['start'])
 def start_cmd(message):
-    bot.send_message(message.chat.id, "SYSTEM\nЕсли вы не участник квеста введите команду /reg чтобы продолжить")
+    bot.send_message(message.chat.id, "SYSTEM:\nЕсли вы не участник квеста введите команду /reg чтобы продолжить")
     bot.send_message(message.chat.id, config.greetings)
     bot.send_message(message.chat.id, config.collectGroupNumber)
     bot.register_next_step_handler(message, get_group_number)
 
 
 def get_group_number(message):
+    # TODO: make unique group-names
     if not check_text(message, get_group_number):
         return
     s = message.text
@@ -238,16 +241,31 @@ def make_challenge_cmd(message):
 @bot.message_handler(commands=['set_duration'])
 @restricted(Role.GOD)
 def set_duration_cmd(message):
-    if not check_text(message, set_duration_cmd):
-        return
-
-    if not message.text.isdigit():
+    l = message.text.split(' ', maxsplit=1)
+    if len(l) < 2 or not l[1].isdigit():
         bot.send_message(message.chat.id, 'Wrong format!\n/set_duration time(minutes)')
         return
     m = float(message.text)
     timer.set_duration(m*60)
     logger.info("Reset round's duration to {} mins by {}".format(m, message.from_user.username))
     bot.send_message(message.chat.id, 'Success!')
+
+
+@bot.message_handler(commands=['pause'])
+@restricted(Role.GOD)
+def pause_cmd(message):
+    t = timer.get_time()
+    timer.pause()
+    logger.info('Round has been paused by @{}\nCurrent time: {}'.format(message.from_user.username, t))
+    everyone('ВНИМАНИЕ!\nКвест был остановлен!\nВремя, прошедшее с начала раунда: {}'.format(t))
+
+
+@bot.message_handler(commands=['resume'])
+@restricted(Role.GOD)
+def resume_cmd(message):
+    timer.resume()
+    logger.info('Round has been resumed by @{}')
+    everyone('ВНИМАНИЕ!\nКвест возобновлен!\nУдачи)')
 
 
 @bot.message_handler(commands=['transfer'])
@@ -295,7 +313,7 @@ def transfer3(message):
         payer = Player.get(Player.tg_id == message.chat.id)
     except DoesNotExist:
         logger.critical("Can't find user - {} in database!".format(message.from_user.username))
-        bot.send_message('Критическая ошибка! Обратитесь к  организаторам')
+        bot.send_message('Критическая ошибка! Обратитесь к  организаторам или напишите @yury_zh')
         return
     if payer.energy < amount:
         bot.send_message(message.chat.id, config.warningNotEnoughEnergy)
@@ -312,28 +330,96 @@ def transfer3(message):
     recipient.save()
     bot.send_message(payer.tg_id, 'Перевод совершен')
     bot.send_message(recipient.tg_id, 'Команда {} перевела вам энергию ({})'.format(payer.name, amount))
+    # TODO: Here maybe will be a transition to the main part of the quest
+
+
+@bot.message_handler(commands=['artifact'])
+@restricted(Role.PLAYER)
+def artifact_cmd(message):
+    bot.send_message(message.chat.id, config.enterArtifactCode)
+    bot.register_next_step_handler(message, get_artifact)
+
+
+def get_artifact(message):
+    if not check_text(message, get_artifact):
+        return
+    # TODO: Handle different artifacts
 
 
 @bot.message_handler(commands=['everyone'])
 @restricted(Role.ADMIN)
 def everyone_cmd(message):
-    if not check_text(message, everyone_cmd):
+    l = message.text.split(' ', maxsplit=1)
+    if len(l) < 2:
+        bot.send_message(message.chat.id, 'Wrong format!\n/everyone <message>')
         return
+    everyone(l[1])
 
-    for user in User.select():
-        bot.send_message(user.tg_id, message.text)
     bot.send_message(message.chat.id, 'Success!')
+
+
+def everyone(msg):
+    for user in User.select():
+        bot.send_message(user.tg_id, msg)
 
 
 @bot.message_handler(commands=['wall'])
 @restricted(Role.ADMIN)
 def wall_cmd(message):
-    if not check_text(message, wall_cmd):
+    l = message.text.split(' ', maxsplit=1)
+    if len(l) < 2:
+        bot.send_message(message.chat.id, 'Wrong format!\n/wall <message>')
         return
+    message.text = l[1]
 
     for user in User.select().where(User.role != Role.PLAYER):
         bot.send_message(user.tg_id, message.text)
     bot.send_message(message.chat.id, 'Success!')
+
+
+@bot.message_handler(commands=['get_user'])
+@restricted(Role.ADMIN)
+def get_user_cmd(message):
+    l = message.text.split(' ', maxsplit=1)
+    if len(l) < 2:
+        bot.send_message(message.chat.id, 'Wrong format!\n/get_user group_number')
+        return
+    name = l[1]
+    try:
+        player = Player.get(Player.name == name)
+    except DoesNotExist:
+        bot.send_message(message.chat.id, 'No such user!')
+        return
+    bot.send_message(message.chat.id, "Group number: {}\nUsername: @{}\nRace: {}\nEnergy: {}\nCurrent time: {}".format(
+        player.name, player.username, player.race, player.energy, player.time
+    ))
+
+
+@bot.message_handler(commands=['status'])
+@restricted(Role.ADMIN)
+def status_cmd(message):
+    msg = ''
+    for player in Player.select().order_by(Player.name):
+        t = player.time
+        msg += '{}: {} min {} sec\n'.format(player.name, int(t // 60), t % 60)
+    bot.send_message(message.chat.id, msg)
+
+
+@bot.message_handler(commands=['begin'])
+@restricted(Role.GOD)
+def begin_cmd(message):
+    # TODO: Beginning of the quest
+    # timer.start(func)
+    everyone('Квест начался! Удачи!')
+    logger.info('Quest has been started by @{}'.format(message.from_user.username))
+
+
+@bot.message_handler(commands=['stop'])
+@restricted(Role.GOD)
+def stop_cmd(message):
+    # TODO: Ending of the quest
+    everyone('Квест завершен! Всем спасибо за участие!\nИтоги квеста будут объявлены после окончания посвята')
+    logger.info('Quest has been stopped by @{}'.format(message.from_user.username))
 
 
 @bot.message_handler(content_types=['sticker'])
