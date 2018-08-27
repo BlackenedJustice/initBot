@@ -63,6 +63,7 @@ class Player(User):
     race = RaceField(default=Race.NONE)
     energy = IntegerField(default=0)
     time = DoubleField(default=0)
+    currentPurpose = IntegerField(default=0)
 
 
 class Challenge(Model):

@@ -268,6 +268,12 @@ def resume_cmd(message):
     everyone('ВНИМАНИЕ!\nКвест возобновлен!\nУдачи)')
 
 
+@bot.message_handler(commands=['time'])
+def time_cmd(message):
+    msg = 'Текущее время с момента начала раунда: {}'.format(timer.get_time())
+    bot.send_message(message.chat.id, msg)
+
+
 @bot.message_handler(commands=['transfer'])
 @restricted(Role.PLAYER)
 def transfer_cmd(message):
@@ -300,7 +306,7 @@ def transfer2(message):
 def transfer3(message):
     if not check_text(message, transfer3):
         return
-    if not message.text.isdigit():
+    if not message.text.isdecimal():
         bot.send_message(message.chat.id, config.warningWrongDataFormat)
         bot.register_next_step_handler(transfer3)
         return
@@ -333,6 +339,41 @@ def transfer3(message):
     # TODO: Here maybe will be a transition to the main part of the quest
 
 
+@bot.message_handler(commands=['pay'])
+@restricted(Role.PLAYER)
+def pay_cmd(message):
+    bot.send_message(message.chat.id, config.enterPaySum)
+    bot.register_next_step_handler(message, pay2)
+
+
+def pay2(message):
+    if not check_text(message, pay2):
+        return
+    if not message.text.isdecimal():
+        bot.send_message(message.chat.id, config.warningWrongDataFormat)
+        bot.register_next_step_handler(message, pay2)
+        return
+    amount = int(message.text)
+    if amount <= 0:
+        bot.send_message(message.chat.id, config.warningWrongAmount)
+        bot.register_next_step_handler(message, pay2)
+        return
+    try:
+        payer = Player.get(Player.tg_id == message.chat.id)
+    except DoesNotExist:
+        logger.critical("Can't find user - {} in database!".format(message.from_user.username))
+        bot.send_message('Критическая ошибка! Обратитесь к  организаторам или напишите @yury_zh')
+        return
+    if payer.energy < amount:
+        bot.send_message(message.chat.id, config.warningNotEnoughEnergy)
+        return
+    logger.info("Team {} has payed {} energy".format(payer.name, amount))
+    payer.energy -= amount
+    payer.save()
+    bot.send_message(payer.tg_id, 'Успешно!')
+    # TODO: Here maybe will be a transition to the main part of the quest (2)
+
+
 @bot.message_handler(commands=['artifact'])
 @restricted(Role.PLAYER)
 def artifact_cmd(message):
@@ -344,6 +385,47 @@ def get_artifact(message):
     if not check_text(message, get_artifact):
         return
     # TODO: Handle different artifacts
+    code = message.text.upper()
+    try:
+        player = Player.get(Player.tg_id == message.chat.id)
+    except DoesNotExist:
+        bot.send_message(message.chat.id, 'Не могу найти вас в списках игроков. Напишите @yury_zh')
+        logger.error("Can't find user - {} in players database!".format(message.from_user.username))
+        return
+    if config.secondaryArtifacts.count(code):
+        bot.send_message(player.tg_id, config.artifactSecondary)
+        player.energy += config.secondaryEnergyAmount
+        player.save()
+        return
+    exists = False
+    artifact_race = 0
+    artifact_pos = 0
+    while artifact_race < 10:
+        if config.artifacts[artifact_race].count(code) > 0:
+            exists = True
+            artifact_pos = config.artifacts[artifact_race].index(code)
+            break
+        artifact_race += 1
+    if not exists:
+        bot.send_message(message.chat.id, config.artifactWrongCode)
+        return
+    artifact_race += 1  # 0-numeration -> 1-numeration
+    if player.race != artifact_race:
+        bot.send_message(message.chat.id, config.artifactWrongRace)
+        logger.info("Team {} (race: {}) has found artifact of race {}".format(player.name, player.race, artifact_race))
+        return
+    if player.currentPurpose < artifact_pos:
+        bot.send_message(player.tg_id, config.artifactTooEarly)
+        logger.info("Team {} (Current purpose: {}) has fond purpose {}".format(
+            player.name, player.currentPurpose, artifact_pos
+        ))
+    elif player.currentPurpose > artifact_pos:
+        bot.send_message(player.tg_id, config.artifactUsed)
+    else:
+        player.currentPurpose += 1
+        player.save()
+        bot.send_message(player.tg_id, config.purposes[player.race - 1][player.currentPurpose - 1])
+        logger.info("Team {} has reached purpose {}".format(player.name, player.currentPurpose - 1))
 
 
 @bot.message_handler(commands=['everyone'])
@@ -403,6 +485,18 @@ def status_cmd(message):
         t = player.time
         msg += '{}: {} min {} sec\n'.format(player.name, int(t // 60), t % 60)
     bot.send_message(message.chat.id, msg)
+
+
+@bot.message_handler(commands=['balance'])
+@restricted(Role.PLAYER)
+def balance_cmd(message):
+    try:
+        player = Player.get(Player.tg_id == message.chat.id)
+    except DoesNotExist:
+        bot.send_message(message.chat.id, 'Не могу найти вас в списках игроков. Напишите @yury_zh')
+        logger.error("Can't find user - {} in players database!".format(message.from_user.username))
+        return
+    bot.send_message(player.tg_id, "У вас сейчас {} энергии".format(player.energy))
 
 
 @bot.message_handler(commands=['begin'])
