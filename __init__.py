@@ -13,6 +13,7 @@ from timing import Timer
 
 timer = Timer(name='Round')
 timer.set_duration(12*60)
+currentRound = 0
 
 logger = logging.getLogger('bot')
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -438,6 +439,10 @@ def get_artifact(message):
         bot.send_message(player.tg_id, config.artifactUsed)
     else:
         player.currentPurpose += 1
+        if player.currentPurpose >= len(config.purposes[player.race - 1]):
+            player.finish = True
+            if currentRound >= 10:
+                player.time += timer.get_time()
         player.save()
         bot.send_message(player.tg_id, config.purposes[player.race - 1][player.currentPurpose - 1])
         logger.info("Team {} has reached purpose {}".format(player.name, player.currentPurpose - 1))
@@ -519,7 +524,7 @@ def balance_cmd(message):
 @restricted(Role.GOD)
 def begin_cmd(message):
     # TODO: Beginning of the quest
-    # timer.start(func)
+    timer.start(next_round)
     everyone('Квест начался! Удачи!')
     logger.info('Quest has been started by @{}'.format(message.from_user.username))
 
@@ -527,9 +532,135 @@ def begin_cmd(message):
 @bot.message_handler(commands=['stop'])
 @restricted(Role.GOD)
 def stop_cmd(message):
-    # TODO: Ending of the quest
-    everyone('Квест завершен! Всем спасибо за участие!\nИтоги квеста будут объявлены после окончания посвята')
+    ending()
     logger.info('Quest has been stopped by @{}'.format(message.from_user.username))
+
+
+@bot.message_handler(commands=['set_round'])
+@restricted(Role.GOD)
+def set_round_cmd(message):
+    l = message.text.split(' ', maxsplit=1)
+    if len(l) < 2 or not l[1].is_decimal():
+        bot.send_message(message.chat.id, "Wrong format!\n/set_round <num>")
+    n = int(l[1])
+    global currentRound
+    currentRound = n
+
+
+def next_round():
+    global currentRound
+    for player in Player.select().where(Player.currentRound == currentRound):
+        player.time += timer.get_duration()  # Maximal time
+        player.currentRound += 1
+        bot.send_message(player.tg_id, config.endingOfRound)
+        bot.send_message(player.tg_id, 'Ваша следующая КПшка - {}'.format(
+            config.kp[player.race - 1][player.currentRound]))
+        player.save()
+        try:
+            kp = User.get(User.currentTeamName == player.name)
+        except DoesNotExist:
+            logger.critical("Can't find active kp for {} - @{}".format(player.name, player.username))
+            bot.send_message(config.creatorID, "Can't find active kp for {} - @{}".format(player.name, player.username))
+            kp = None
+        if kp is not None:
+            bot.send_message(kp.tg_id, 'Раунд закончился, пожалуйста введите комманду /add <num> чтобы добавить '
+                                       'энергию команде. Если энергии не полагается введите /add 0')
+    currentRound += 1
+    if currentRound < 10:
+        timer.start(next_round)
+    else:
+        timer.set_duration(30*60)
+        timer.start(ending)
+
+
+def ending():
+    # TODO: Ending
+    everyone('Квест завершен! Всем спасибо за участие!\nИтоги квеста будут объявлены после окончания посвята')
+    for player in Player.select().where(not Player.finish):
+        player.time += timer.get_duration()
+        player.save()
+    msg = ''
+    for player in Player.select().order_by(Player.time.desc()):
+        t = player.time
+        msg += '{}: {} min {} sec\n'.format(player.name, int(t // 60), t % 60)
+    bot.send_message(config.creatorID, msg)
+
+
+@bot.message_handler(commands=['add'])
+@restricted(Role.KP)
+def add_cmd(message):
+    l = message.text.split(' ', maxsplit=1)
+    if len(l) < 2 or not l[1].is_decimal():
+        bot.send_message(message.chat.id, 'Wrong format!\n/add <num>')
+        return
+    try:
+        kp = User.get(User.tg_id == message.chat.id)
+    except DoesNotExist:
+        bot.send_message(message.chat.id, 'Не могу найти вас в базе пользователей')
+        logger.error("Can't find @{} - {} in database".format(message.from_user.username, message.chat.id))
+        return
+    if kp.role != Role.KP:
+        bot.send_message(kp.tg_id, 'Вы не КПшник!')
+        logger.info("Unauthorized access to <add> cmd by @{}".format(kp.username))
+        return
+    try:
+        player = Player.get(Player.name == kp.currentTeamName)
+    except DoesNotExist:
+        bot.send_message(kp.tg_id, 'Что-то пошло не так! Напишите @{}'.format(config.creatorUsername))
+        logger.critical('No active team for @{} - {}'.format(kp.username, kp.tg_id))
+        set_next_team(kp)
+        return
+    player.energy += int(l[1])
+    player.save()
+    kp.currentTeamName = set_next_team(kp, currentRound)
+    kp.save()
+    bot.send_message(kp.tg_id, 'Следующая группа - {}'.format(kp.currentTeamName))
+
+
+def set_next_team(kp, round):
+    name = kp.challenge.name
+    r = kp.challenge.round
+    for player in Player.select().where(Player.round == r):
+        if config.kp[player.race - 1][round] == name:
+            return player.name
+    logger.critical("Can't find next group for {} {} - @{}".format(name, r, kp.username))
+    bot.send_message(config.creatorID, "Can't find next group for {} {} - @{}".format(
+        name, r, kp.username
+    ))
+    return '101'
+
+
+@bot.message_handler(commands=['release'])
+@restricted(Role.KP)
+def release_cmd(message):
+    t = timer.get_time()
+    l = message.text.split(' ', maxsplit=1)
+    if len(l) < 2 or not l[1].is_decimal():
+        bot.send_message(message.chat.id, 'Wrong format!\n/release <num>')
+        return
+    n = int(l[1])
+    try:
+        kp = User.get(User.tg_id == message.chat.id)
+    except DoesNotExist:
+        logger.error("Can't find @{} - {} in database".format(message.from_user.username, message.chat.id))
+        bot.send_message('Что-то пошло не так. Напишите номер группы и текущее время @{}'.format(
+            config.creatorUsername))
+        return
+    try:
+        player = Player.get(Player.name == kp.currentTeamName)
+    except DoesNotExist:
+        logger.error("Can't find player")
+        bot.send_message('Что-то пошло не так. Напишите номер группы и текущее время @{}'.format(
+            config.creatorUsername))
+        return
+    player.energy += n
+    player.time += t
+    player.currentRound += 1
+    player.save()
+    kp.currentTeamName = set_next_team(kp, player.currentRound)
+    kp.save()
+    bot.send_message(kp.tg_id, 'Следующая группа - {}'.format(kp.currentTeamName))
+    bot.send_message(player.tg_id, 'Ваша следующая КПшка - {}'.format(config.kp[player.race - 1][player.currentRound]))
 
 
 @bot.message_handler(content_types=['sticker'])

@@ -15,6 +15,9 @@ class Timer:
     def set_duration(self, sec):
         self.__duration = sec
 
+    def get_duration(self):
+        return self.__duration
+
     def start(self, func):
         self.__startTime = time.time()
         self.__delta = 0

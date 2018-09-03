@@ -54,6 +54,7 @@ class User(Model):
                                    default=None,
                                    null=True,
                                    backref='kp')
+    currentTeamName = CharField(null=True)
 
     class Meta:
         database = db
@@ -65,6 +66,8 @@ class Player(User):
     energy = IntegerField(default=0)
     time = DoubleField(default=0)
     currentPurpose = IntegerField(default=0)
+    currentRound = IntegerField(default=0)
+    finish = BooleanField(default=False)
 
 
 class Challenge(Model):
