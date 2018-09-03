@@ -61,6 +61,7 @@ class User(Model):
 
 class Player(User):
     race = RaceField(default=Race.NONE)
+    round = IntegerField(default=1)
     energy = IntegerField(default=0)
     time = DoubleField(default=0)
     currentPurpose = IntegerField(default=0)
@@ -68,6 +69,7 @@ class Player(User):
 
 class Challenge(Model):
     name = CharField()
+    round = IntegerField(default=1)  # 1/2
     admin = ForeignKeyField(User, backref='own_challenge', null=False)
     finished = BooleanField(default=False)
 

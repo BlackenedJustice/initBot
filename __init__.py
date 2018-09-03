@@ -23,26 +23,29 @@ logger.setLevel(logging.DEBUG)
 transfers = {}
 
 bot = telebot.TeleBot(token=config.token)
-'''
+
 # using proxy in Russia
 apihelper.proxy = {
-    'http': 'http://167.99.242.198:8080',
-    'https': 'https://167.99.242.198:8080'
+    'http': 'http://46.101.149.132:3128',
+    'https': 'https://46.101.149.132:3128'
+    # 'http': 'http://79.138.99.254:8080',
+    # 'https': 'https://79.138.99.254:8080'
+    # 'http': 'http://5.148.128.44:80',
+    # 'https': 'https://5.148.128.44:80'
+    # 'http': 'http://167.99.242.198:8080',
+    # 'https': 'https://167.99.242.198:8080'
 }
-
-'''
 
 # create tables in db
 db.connect()
 db.create_tables([User, Player, Challenge])
 
-'''
+
 # create GOD if not exists
 try:
     god = User.get(User.tg_id == config.creatorID)
 except DoesNotExist:
     god = User.create(tg_id=config.creatorID, username=config.creatorUsername, name='Yury', role=Role.GOD)
-'''
 
 
 @MWT(timeout=5*60)
@@ -94,13 +97,17 @@ def get_group_number(message):
         bot.register_next_step_handler(message, get_group_number)
         return
     a = int(s)
-    if (a < 101 or a > 118) and a != 141:
+    if (a < 101 or a > 118) and a != 141 and a != 142:
         logger.warning("Wrong number in <get_group_number> by {}".format(message.from_user.username))
         bot.send_message(message.chat.id, config.warningTooLarge)
         bot.register_next_step_handler(message, get_group_number)
         return
+    (race, r) = config.get_race(s)
     player = Player.create(tg_id=message.chat.id, name=s, username=message.from_user.username,
-                           role=Role.PLAYER, race=config.get_race())
+                           role=Role.PLAYER, race=race, round=r)
+    if player.race < 0:
+        logger.critical("Wrong group name at @{} !".format(message.from_user.username))
+        bot.send_message(config.creatorID, "Wrong group name at @{} !".format(message.from_user.username))
     # TODO: here will be a transition to quest (maybe)
     logger.info("Group number {} was registered. Race: {}".format(a, player.race))
     bot.send_message(message.chat.id, config.successfulRegistration)
@@ -127,7 +134,7 @@ def get_name(message):
 def make_god_cmd(message):
     l = message.text.split(' ', maxsplit=1)
     if len(l) < 2:
-        bot.send_message('Wrong format!\n/make_god username')
+        bot.send_message(message.chat.id, 'Wrong format!\n/make_god username')
         return
     username = l[1]
     try:
@@ -147,7 +154,7 @@ def make_god_cmd(message):
 def make_admin_cmd(message):
     l = message.text.split(' ', maxsplit=1)
     if len(l) < 2:
-        bot.send_message('Wrong format!\n/make_admin username')
+        bot.send_message(message.chat.id, 'Wrong format!\n/make_admin username')
         return
     username = l[1]
     try:
@@ -176,7 +183,7 @@ def make_kp_cmd(message):
 
     l = message.text.split(' ', maxsplit=2)
     if count != 1 and len(l) < 3:
-        bot.send_message('Wrong format!\n/make_kp username challenge_name')
+        bot.send_message(message.chat.id, 'Wrong format!\n/make_kp username challenge_name')
         return
     username = l[1]
     if request_user.role == Role.ADMIN:
@@ -216,20 +223,25 @@ def make_kp_cmd(message):
 @bot.message_handler(commands=['make_challenge'])
 @restricted(Role.GOD)
 def make_challenge_cmd(message):
-    l = message.text.split(' ', maxsplit=2)
-    if len(l) < 3:
-        bot.send_message('Wrong format!\n/make_kp challenge_name admin_username')
+    l = message.text.split(' ', maxsplit=3)
+    if len(l) < 4:
+        bot.send_message(message.chat.id,
+                         'Wrong format!\n/make_challenge challenge_name challenge_round(1/2) admin_username')
         return
 
     challenge_name = l[1]
-    admin_username = l[2]
+    if l[2].isdecimal():
+        r = int(l[2])
+    else:
+        r = 1
+    admin_username = l[3]
     try:
         admin = User.get(User.name == admin_username)
     except DoesNotExist:
         bot.send_message(message.chat.id, 'No such user!')
         return
     # with db.atomic() as txn
-    challenge = Challenge.create(name=challenge_name, admin=admin)
+    challenge = Challenge.create(name=challenge_name, admin=admin, round=r)
     admin.role = Role.ADMIN
     admin.save()
 
@@ -319,7 +331,9 @@ def transfer3(message):
         payer = Player.get(Player.tg_id == message.chat.id)
     except DoesNotExist:
         logger.critical("Can't find user - {} in database!".format(message.from_user.username))
-        bot.send_message('Критическая ошибка! Обратитесь к  организаторам или напишите @yury_zh')
+        bot.send_message(message.chat.id, 'Критическая ошибка! Обратитесь к  организаторам или напишите @{}'.format(
+            config.creatorUsername
+        ))
         return
     if payer.energy < amount:
         bot.send_message(message.chat.id, config.warningNotEnoughEnergy)
@@ -362,7 +376,8 @@ def pay2(message):
         payer = Player.get(Player.tg_id == message.chat.id)
     except DoesNotExist:
         logger.critical("Can't find user - {} in database!".format(message.from_user.username))
-        bot.send_message('Критическая ошибка! Обратитесь к  организаторам или напишите @yury_zh')
+        bot.send_message(message.chat.id, 'Критическая ошибка! Обратитесь к  организаторам или напишите @{}'.format(
+            config.creatorUsername))
         return
     if payer.energy < amount:
         bot.send_message(message.chat.id, config.warningNotEnoughEnergy)
@@ -493,7 +508,8 @@ def balance_cmd(message):
     try:
         player = Player.get(Player.tg_id == message.chat.id)
     except DoesNotExist:
-        bot.send_message(message.chat.id, 'Не могу найти вас в списках игроков. Напишите @yury_zh')
+        bot.send_message(message.chat.id, 'Не могу найти вас в списках игроков. Напишите @{}'.format(
+            config.creatorUsername))
         logger.error("Can't find user - {} in players database!".format(message.from_user.username))
         return
     bot.send_message(player.tg_id, "У вас сейчас {} энергии".format(player.energy))

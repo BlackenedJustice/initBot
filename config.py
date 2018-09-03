@@ -7,11 +7,48 @@ creatorUsername = 'yury_zh'
 
 db = SqliteDatabase('data.db')
 
-races = [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10]
+races = {
+    '101': (1, 1),
+    '102': (6, 1),
+    '103': (4, 1),
+    '104': (3, 1),
+    '105': (8, 1),
+    '106': (9, 1),
+    '107': (10, 1),
+    '108': (1, 2),
+    '109': (9, 2),
+    '110': (7, 1),
+    '111': (5, 1),
+    '112': (3, 2),
+    '113': (2, 1),
+    '114': (5, 2),
+    '115': (6, 2),
+    '116': (4, 2),
+    '117': (8, 2),
+    '118': (2, 2),
+    '141': (10, 2),
+    '142': (7, 2)
+}
+
+kp = [
+    ['Giant', 'Researcher', 'Pixie', 'Elf', 'Werewolf', 'Ork', 'Goblin', 'Dwarf', 'Troll', 'Demon'],  # Researcher
+    ['Dwarf', 'Troll', 'Demon', 'Giant', 'Researcher', 'Pixie', 'Elf', 'Werewolf', 'Ork', 'Goblin'],  # Werewolf
+    ['Ork', 'Goblin', 'Dwarf', 'Troll', 'Demon', 'Giant', 'Researcher', 'Pixie', 'Elf', 'Werewolf'],  # Dwarf
+    ['Researcher', 'Pixie', 'Elf', 'Werewolf', 'Ork', 'Goblin', 'Dwarf', 'Troll', 'Demon', 'Giant'],  # Elf
+    ['Werewolf', 'Ork', 'Goblin', 'Dwarf', 'Troll', 'Demon', 'Giant', 'Researcher', 'Pixie', 'Elf'],  # Ork
+    ['Elf', 'Werewolf', 'Ork', 'Goblin', 'Dwarf', 'Troll', 'Demon', 'Giant', 'Researcher', 'Pixie'],  # Pixie
+    ['Ork', 'Goblin', 'Dwarf', 'Troll', 'Demon', 'Giant', 'Researcher', 'Pixie', 'Elf', 'Werewolf'],  # Goblin
+    ['Goblin', 'Dwarf', 'Troll', 'Demon', 'Giant', 'Researcher', 'Pixie', 'Elf', 'Werewolf', 'Ork'],  # Troll
+    ['Demon', 'Giant', 'Researcher', 'Pixie', 'Elf', 'Werewolf', 'Ork', 'Goblin', 'Dwarf', 'Troll'],  # Giant
+    ['Troll', 'Demon', 'Giant', 'Researcher', 'Pixie', 'Elf', 'Werewolf', 'Ork', 'Goblin', 'Dwarf']   # Demon
+]
 
 
-def get_race():
-    return races.pop(randrange(0, len(races)))
+def get_race(num):
+    r = races.get(num)
+    if r is None:
+        r = (-10, -10)
+    return r
 
 
 greetings = 'Здравствуйте! Добро пожаловать на квест Посвящения в студенты ВМК 2018!\n' \
