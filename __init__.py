@@ -88,7 +88,6 @@ def start_cmd(message):
 
 
 def get_group_number(message):
-    # TODO: make unique group-names
     if not check_text(message, get_group_number):
         return
     s = message.text
@@ -321,12 +320,12 @@ def transfer3(message):
         return
     if not message.text.isdecimal():
         bot.send_message(message.chat.id, config.warningWrongDataFormat)
-        bot.register_next_step_handler(transfer3)
+        bot.register_next_step_handler(message, transfer3)
         return
     amount = int(message.text)
     if amount <= 0:
         bot.send_message(message.chat.id, config.warningWrongAmount)
-        bot.register_next_step_handler(transfer3)
+        bot.register_next_step_handler(message, transfer3)
         return
     try:
         payer = Player.get(Player.tg_id == message.chat.id)
@@ -400,7 +399,6 @@ def artifact_cmd(message):
 def get_artifact(message):
     if not check_text(message, get_artifact):
         return
-    # TODO: Handle different artifacts
     code = message.text.upper()
     try:
         player = Player.get(Player.tg_id == message.chat.id)
@@ -643,14 +641,14 @@ def release_cmd(message):
         kp = User.get(User.tg_id == message.chat.id)
     except DoesNotExist:
         logger.error("Can't find @{} - {} in database".format(message.from_user.username, message.chat.id))
-        bot.send_message('Что-то пошло не так. Напишите номер группы и текущее время @{}'.format(
+        bot.send_message(message.chat.id, 'Что-то пошло не так. Напишите номер группы и текущее время @{}'.format(
             config.creatorUsername))
         return
     try:
         player = Player.get(Player.name == kp.currentTeamName)
     except DoesNotExist:
         logger.error("Can't find player")
-        bot.send_message('Что-то пошло не так. Напишите номер группы и текущее время @{}'.format(
+        bot.send_message(message.chat.id, 'Что-то пошло не так. Напишите номер группы и текущее время @{}'.format(
             config.creatorUsername))
         return
     player.energy += n
