@@ -33,7 +33,7 @@ races = {
 kp = [
     ['Giant', 'Researcher', 'Pixie', 'Elf', 'Werewolf', 'Ork', 'Goblin', 'Dwarf', 'Troll', 'Demon'],  # Researcher
     ['Dwarf', 'Troll', 'Demon', 'Giant', 'Researcher', 'Pixie', 'Elf', 'Werewolf', 'Ork', 'Goblin'],  # Werewolf
-    ['Ork', 'Goblin', 'Dwarf', 'Troll', 'Demon', 'Giant', 'Researcher', 'Pixie', 'Elf', 'Werewolf'],  # Dwarf
+    ['Pixie', 'Elf', 'Werewolf', 'Ork', 'Goblin', 'Dwarf', 'Troll', 'Demon', 'Giant', 'Researcher'],  # Dwarf
     ['Researcher', 'Pixie', 'Elf', 'Werewolf', 'Ork', 'Goblin', 'Dwarf', 'Troll', 'Demon', 'Giant'],  # Elf
     ['Werewolf', 'Ork', 'Goblin', 'Dwarf', 'Troll', 'Demon', 'Giant', 'Researcher', 'Pixie', 'Elf'],  # Ork
     ['Elf', 'Werewolf', 'Ork', 'Goblin', 'Dwarf', 'Troll', 'Demon', 'Giant', 'Researcher', 'Pixie'],  # Pixie
