@@ -25,6 +25,8 @@ transfers = {}
 
 bot = telebot.TeleBot(token=config.token)
 
+'''
+
 # using proxy in Russia
 apihelper.proxy = {
     'http': 'http://46.101.149.132:3128',
@@ -36,7 +38,7 @@ apihelper.proxy = {
     # 'http': 'http://167.99.242.198:8080',
     # 'https': 'https://167.99.242.198:8080'
 }
-
+'''
 # create tables in db
 db.connect()
 db.create_tables([User, Player, Challenge])
@@ -103,6 +105,7 @@ def get_group_number(message):
         bot.register_next_step_handler(message, get_group_number)
         return
     (race, r) = config.get_race(s)
+    user = User.create(tg_id=message.chat.id, name=s, username=message.from_user.username, role=Role.PLAYER)
     player = Player.create(tg_id=message.chat.id, name=s, username=message.from_user.username,
                            role=Role.PLAYER, race=race, round=r)
     if player.race < 0:
