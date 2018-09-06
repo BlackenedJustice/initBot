@@ -1,16 +1,53 @@
 from peewee import *
+import os
+import urllib.parse as urlparse
+import psycopg2
 
 token = '605058683:AAHW95wwWBiPd4L3o4Craf0tPG-y3kG4AZc'
 creatorID = 144454876
 creatorUsername = 'yury_zh'
 
+
+if 'HEROKU' in os.environ:
+    DEBUG = False
+    urlparse.uses_netloc.append('postgres')
+    url = urlparse.urlparse(os.environ['DATABASE_URL'])
+    DATABASE = {
+        'engine': 'peewee.PostgresqlDatabase',
+        'name': url.path[1:],
+        'user': url.username,
+        'password': url.password,
+        'host': url.hostname,
+        'port': url.port,
+    }
+else:
+    DEBUG = True
+    DATABASE = {
+        'engine': 'peewee.PostgresqlDatabase',
+        'name': 'yury',
+        'user': 'yury',
+        'password': '508087yhpR',
+        'host': 'localhost',
+        'port': 5432 ,
+        'threadlocals': True
+    }
+
+db = PostgresqlDatabase(
+    DATABASE.get('name'),
+    user=DATABASE.get('user'),
+    password=DATABASE.get('password'),
+    host=DATABASE.get('host'),
+    port=DATABASE.get('port')
+)
+
+'''
 db = PostgresqlDatabase(  # Heroku
     'dek49hcm75f5mv',
     user='vfwefpaxjbwjtl',
     password='6d020954f2b3f8281051b10b4871f45f41eb2407b65deeffe64496abab8a12ae',
     host='ec2-54-75-251-84.eu-west-1.compute.amazonaws.com'
 )
-'''
+
 db = PostgresqlDatabase(
     'yury',
     user='yury',
