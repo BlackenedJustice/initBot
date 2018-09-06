@@ -24,17 +24,15 @@ logger.setLevel(logging.DEBUG)
 transfers = {}
 
 bot = telebot.TeleBot(token=config.token)
-
 '''
-
 # using proxy in Russia
 apihelper.proxy = {
-    'http': 'http://46.101.149.132:3128',
-    'https': 'https://46.101.149.132:3128'
+    # 'http': 'http://46.101.149.132:3128',
+    # 'https': 'https://46.101.149.132:3128'
     # 'http': 'http://79.138.99.254:8080',
     # 'https': 'https://79.138.99.254:8080'
-    # 'http': 'http://5.148.128.44:80',
-    # 'https': 'https://5.148.128.44:80'
+     'http': 'http://5.148.128.44:80',
+     'https': 'https://5.148.128.44:80'
     # 'http': 'http://167.99.242.198:8080',
     # 'https': 'https://167.99.242.198:8080'
 }
@@ -83,6 +81,14 @@ def check_text(message, func):
 
 @bot.message_handler(commands=['start'])
 def start_cmd(message):
+    exists = True
+    try:
+        user = User.get(User.tg_id == message.chat.id)
+    except DoesNotExist:
+        exists = False
+    if exists:
+        bot.send_message(message.chat.id, 'Вы уже зарегистрированы')
+        return
     bot.send_message(message.chat.id, "SYSTEM:\nЕсли вы не участник квеста введите команду /reg чтобы продолжить")
     bot.send_message(message.chat.id, config.greetings)
     bot.send_message(message.chat.id, config.collectGroupNumber)
@@ -91,6 +97,9 @@ def start_cmd(message):
 
 def get_group_number(message):
     if not check_text(message, get_group_number):
+        return
+    if message.text == '/reg':
+        reg_cmd(message)
         return
     s = message.text
     if not s.isdecimal():
@@ -153,7 +162,7 @@ def make_god_cmd(message):
 
 
 @bot.message_handler(commands=['make_admin'])
-@restricted(Role.ADMIN)
+@restricted(Role.GOD)
 def make_admin_cmd(message):
     l = message.text.split(' ', maxsplit=1)
     if len(l) < 2:
@@ -237,20 +246,21 @@ def make_challenge_cmd(message):
         r = int(l[2])
     else:
         r = 1
-    admin_username = l[3]
+    kp_username = l[3]
     try:
-        admin = User.get(User.name == admin_username)
+        kp = User.get(User.username == kp_username)
     except DoesNotExist:
         bot.send_message(message.chat.id, 'No such user!')
         return
     # with db.atomic() as txn
-    challenge = Challenge.create(name=challenge_name, admin=admin, round=r)
-    admin.role = Role.ADMIN
-    admin.save()
+    challenge = Challenge.create(name=challenge_name, kp=kp, round=r)
+    kp.role = Role.KP
+    kp.challenge = challenge
+    kp.save()
 
-    logger.info("Challenge '{}' has been made. Admin: {} - {}".format(challenge_name, admin.name, admin_username))
+    logger.info("Challenge '{}' has been made. KP: {} - {}".format(challenge_name, kp.name, kp_username))
     bot.send_message(message.chat.id, 'Success!')
-    bot.send_message(admin.tg_id, "You become an admin of " + challenge_name)
+    bot.send_message(kp.tg_id, "You became an admin of " + challenge_name)
 
 
 @bot.message_handler(commands=['set_duration'])
@@ -285,7 +295,8 @@ def resume_cmd(message):
 
 @bot.message_handler(commands=['time'])
 def time_cmd(message):
-    msg = 'Текущее время с момента начала раунда: {}'.format(timer.get_time())
+    t = timer.get_time()
+    msg = 'Текущее время с момента начала раунда: {} мин {} сек'.format(int(t // 60), int(t % 60))
     bot.send_message(message.chat.id, msg)
 
 
@@ -410,6 +421,7 @@ def get_artifact(message):
         logger.error("Can't find user - {} in players database!".format(message.from_user.username))
         return
     if config.secondaryArtifacts.count(code):
+        # TODO: Delete artifact
         bot.send_message(player.tg_id, config.artifactSecondary)
         player.energy += config.secondaryEnergyAmount
         player.save()
@@ -493,8 +505,11 @@ def get_user_cmd(message):
     except DoesNotExist:
         bot.send_message(message.chat.id, 'No such user!')
         return
-    bot.send_message(message.chat.id, "Group number: {}\nUsername: @{}\nRace: {}\nEnergy: {}\nCurrent time: {}".format(
-        player.name, player.username, player.race, player.energy, player.time
+    bot.send_message(message.chat.id, "Group number: {}\nUsername: @{}\nRace: {}\nType: {}\nEnergy: {}\n"
+                                      "Current time: {} min {} sec\nCurrent purpose: {}\n"
+                                      "Current round: {}\nFinished: {}".format(
+        player.name, player.username, player.race, player.round, player.energy, int(player.time // 60),
+        int(player.time % 60), player.currentPurpose, player.currentRound, player.finish
     ))
 
 
@@ -525,6 +540,14 @@ def balance_cmd(message):
 @restricted(Role.GOD)
 def begin_cmd(message):
     # TODO: Beginning of the quest
+    global currentRound
+    for player in Player.select().where(Player.currentRound == currentRound):
+        bot.send_message(player.tg_id, 'Ваша следующая КПшка - {}'.format(
+            config.kp[player.race - 1][player.currentRound]))
+    for kp in User.select().where(User.role == Role.KP):
+        kp.currentTeamName = set_next_team(kp, currentRound)
+        kp.save()
+        bot.send_message(kp.tg_id, 'Следующая группа - {}'.format(kp.currentTeamName))
     timer.start(next_round)
     everyone('Квест начался! Удачи!')
     logger.info('Quest has been started by @{}'.format(message.from_user.username))
@@ -628,7 +651,7 @@ def set_next_team(kp, round):
     bot.send_message(config.creatorID, "Can't find next group for {} {} - @{}".format(
         name, r, kp.username
     ))
-    return '101'
+    return '-1'
 
 
 @bot.message_handler(commands=['release'])
@@ -636,7 +659,7 @@ def set_next_team(kp, round):
 def release_cmd(message):
     t = timer.get_time()
     l = message.text.split(' ', maxsplit=1)
-    if len(l) < 2 or not l[1].is_decimal():
+    if len(l) < 2 or not l[1].isdecimal():
         bot.send_message(message.chat.id, 'Wrong format!\n/release <num>')
         return
     n = int(l[1])

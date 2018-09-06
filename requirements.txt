@@ -12,3 +12,5 @@ requests==2.10.0
 setuptools==39.1.0
 six==1.11.0
 urllib3==1.23
+py-postgresql==1.2.1
+psycopg2==2.7.5

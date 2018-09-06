@@ -60,7 +60,11 @@ class User(Model):
         database = db
 
 
-class Player(User):
+class Player(Model):
+    tg_id = IntegerField(unique=True)
+    name = CharField(null=True)
+    username = CharField(null=True)
+    role = RoleField(default=Role.NONE)
     race = RaceField(default=Race.NONE)
     round = IntegerField(default=1)
     energy = IntegerField(default=0)
@@ -69,11 +73,14 @@ class Player(User):
     currentRound = IntegerField(default=0)
     finish = BooleanField(default=False)
 
+    class Meta:
+        database = db
+
 
 class Challenge(Model):
     name = CharField()
     round = IntegerField(default=1)  # 1/2
-    admin = ForeignKeyField(User, backref='own_challenge', null=False)
+    kp = ForeignKeyField(User, backref='own_challenge', null=False)
     finished = BooleanField(default=False)
 
     class Meta:

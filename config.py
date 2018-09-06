@@ -1,11 +1,16 @@
 from peewee import *
-from random import randrange
 
 token = '605058683:AAHW95wwWBiPd4L3o4Craf0tPG-y3kG4AZc'
 creatorID = 144454876
 creatorUsername = 'yury_zh'
 
-db = SqliteDatabase('data.db')
+db = PostgresqlDatabase(
+    'yury',
+    user='yury',
+    password='508087yhpR',
+    host='localhost'
+)
+#db = SqliteDatabase('data.db')
 
 races = {
     '101': (1, 1),
@@ -89,7 +94,7 @@ secondaryArtifacts = ['M224WQ',
                       'AB1DM0',
                       '8Y1P84',
                       'G82KIL']
-secondaryEnergyAmount = 1000
+secondaryEnergyAmount = 100
 
 artifacts = [['GLVH01',
               'TUC6XV'],  # Researchers

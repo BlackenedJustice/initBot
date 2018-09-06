@@ -2,7 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="960fe793-940a-4440-bc73-2f53b150f5ab" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/users.py" beforeDir="false" afterPath="$PROJECT_DIR$/users.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/venv/pip-selfcheck.json" beforeDir="false" afterPath="$PROJECT_DIR$/venv/pip-selfcheck.json" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -12,7 +17,7 @@
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/initBot$Unnamed.coverage" NAME="Unnamed Coverage Results" MODIFIED="1534100099098" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/.." />
-    <SUITE FILE_PATH="coverage/initBot$__init__.coverage" NAME="__init__ Coverage Results" MODIFIED="1536093360225" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/initBot$__init__.coverage" NAME="__init__ Coverage Results" MODIFIED="1536235876633" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="DatabaseView">
     <option name="SHOW_INTERMEDIATE" value="true" />
@@ -37,25 +42,26 @@
     <session id="-390025498">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="1" />
+          <entry key="project.closed" value="3" />
           <entry key="project.open.time.10" value="1" />
-          <entry key="project.open.time.12" value="1" />
+          <entry key="project.open.time.12" value="2" />
+          <entry key="project.open.time.14" value="1" />
           <entry key="project.open.time.4" value="1" />
-          <entry key="project.opened" value="3" />
+          <entry key="project.opened" value="5" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="Procfile" value="1" />
           <entry key="gitignore" value="2" />
-          <entry key="py" value="11" />
+          <entry key="py" value="12" />
           <entry key="txt" value="1" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="PLAIN_TEXT" value="4" />
-          <entry key="Python" value="11" />
+          <entry key="Python" value="12" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
@@ -63,34 +69,48 @@
           <entry key="Procfile" value="24" />
           <entry key="dummy" value="3" />
           <entry key="gitignore" value="52" />
-          <entry key="py" value="19840" />
-          <entry key="txt" value="2" />
+          <entry key="py" value="20497" />
+          <entry key="txt" value="8" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="PLAIN_TEXT" value="81" />
-          <entry key="Python" value="19840" />
+          <entry key="PLAIN_TEXT" value="87" />
+          <entry key="Python" value="20497" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="468">
-              <caret line="663" column="119" selection-start-line="663" selection-start-column="119" selection-end-line="663" selection-end-column="119" />
+            <state relative-caret-position="167">
+              <caret line="34" column="4" selection-start-line="34" selection-start-column="4" selection-end-line="34" selection-end-column="4" />
               <folding>
                 <element signature="e#0#25#0" expanded="true" />
-                <marker date="1536157431511" expanded="true" signature="1378:1499" ph="..." />
-                <marker date="1536157431511" expanded="true" signature="1973:2277" ph="..." />
-                <marker date="1536157431511" expanded="true" signature="18524:18961" ph="..." />
-                <marker date="1536157431511" expanded="true" signature="19513:19744" ph="..." />
-                <marker date="1536157431511" expanded="true" signature="20936:20941" ph="..." />
-                <marker date="1536157431511" expanded="true" signature="20936:21419" ph="..." />
-                <marker date="1536157431511" expanded="true" signature="24490:24493" ph="..." />
+                <marker date="1536235632535" expanded="true" signature="1372:1493" ph="..." />
+                <marker date="1536235632535" expanded="true" signature="1967:2271" ph="..." />
+                <marker date="1536235632535" expanded="true" signature="19162:19599" ph="..." />
+                <marker date="1536235632535" expanded="true" signature="20613:20844" ph="..." />
+                <marker date="1536235632535" expanded="true" signature="22036:22041" ph="..." />
+                <marker date="1536235632535" expanded="true" signature="22036:22519" ph="..." />
+                <marker date="1536235632535" expanded="true" signature="25588:25591" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/users.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="499">
+              <caret line="78" selection-start-line="78" selection-end-line="78" />
+              <folding>
+                <element signature="e#0#20#0" expanded="true" />
+                <marker date="1536178734844" expanded="true" signature="178:338" ph="..." />
+                <marker date="1536178734844" expanded="true" signature="536:688" ph="..." />
               </folding>
             </state>
           </provider>
@@ -105,25 +125,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/requirements.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="195">
-              <caret line="13" column="8" selection-start-line="13" selection-start-column="7" selection-end-line="13" selection-end-column="9" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/users.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="753">
-              <caret line="68" column="39" selection-start-line="68" selection-start-column="39" selection-end-line="68" selection-end-column="39" />
-              <folding>
-                <element signature="e#0#20#0" expanded="true" />
-                <marker date="1536006598235" expanded="true" signature="178:338" ph="..." />
-                <marker date="1536006598235" expanded="true" signature="536:688" ph="..." />
-              </folding>
+            <state relative-caret-position="210">
+              <caret line="14" column="20" selection-start-line="14" selection-start-column="20" selection-end-line="15" selection-end-column="15" />
             </state>
           </provider>
         </entry>
@@ -131,11 +137,10 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="525">
-              <caret line="35" column="98" selection-start-line="35" selection-start-column="98" selection-end-line="35" selection-end-column="98" />
+            <state relative-caret-position="-188">
+              <caret line="7" column="9" selection-start-line="7" selection-start-column="9" selection-end-line="7" selection-end-column="9" />
               <folding>
-                <element signature="e#0#20#0" expanded="true" />
-                <marker date="1536156618698" expanded="true" signature="1718:1798" ph="..." />
+                <marker date="1536232797980" expanded="true" signature="1794:1874" ph="..." />
               </folding>
             </state>
           </provider>
@@ -181,10 +186,13 @@
       <find>player.currentPurpose += 1</find>
       <find />
       <find>=</find>
+      <find>is_decimal()</find>
+      <find>pau</find>
     </findStrings>
     <replaceStrings>
       <replace>=</replace>
       <replace>==</replace>
+      <replace>isdecimal()</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -198,12 +206,12 @@
         <option value="$PROJECT_DIR$/mwt.py" />
         <option value="$PROJECT_DIR$/timer.py" />
         <option value="$PROJECT_DIR$/timing.py" />
-        <option value="$PROJECT_DIR$/users.py" />
         <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/requirements.txt" />
         <option value="$PROJECT_DIR$/Procfile" />
+        <option value="$PROJECT_DIR$/users.py" />
         <option value="$PROJECT_DIR$/config.py" />
         <option value="$PROJECT_DIR$/__init__.py" />
+        <option value="$PROJECT_DIR$/requirements.txt" />
       </list>
     </option>
   </component>
@@ -339,14 +347,13 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
-    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.10300429" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.10586552" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.32891566" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3060241" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -385,13 +392,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/venv/lib/python3.6/site-packages/telebot/util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="930">
-          <caret line="69" column="27" lean-forward="true" selection-start-line="69" selection-start-column="27" selection-end-line="69" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/venv/lib/python3.6/site-packages/telebot/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="170">
@@ -399,17 +399,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Procfile">
+    <entry file="file://$PROJECT_DIR$/venv/lib/python3.6/site-packages/telebot/util.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="24" selection-start-column="24" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/requirements.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="13" column="8" selection-start-line="13" selection-start-column="7" selection-end-line="13" selection-end-column="9" />
+        <state relative-caret-position="230">
+          <caret line="58" selection-start-line="58" selection-end-line="58" />
         </state>
       </provider>
     </entry>
@@ -435,41 +428,54 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/users.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="753">
-          <caret line="68" column="39" selection-start-line="68" selection-start-column="39" selection-end-line="68" selection-end-column="39" />
+        <state relative-caret-position="499">
+          <caret line="78" selection-start-line="78" selection-end-line="78" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
-            <marker date="1536006598235" expanded="true" signature="178:338" ph="..." />
-            <marker date="1536006598235" expanded="true" signature="536:688" ph="..." />
+            <marker date="1536178734844" expanded="true" signature="178:338" ph="..." />
+            <marker date="1536178734844" expanded="true" signature="536:688" ph="..." />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Procfile">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="24" selection-start-column="24" selection-end-column="24" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="525">
-          <caret line="35" column="98" selection-start-line="35" selection-start-column="98" selection-end-line="35" selection-end-column="98" />
+        <state relative-caret-position="-188">
+          <caret line="7" column="9" selection-start-line="7" selection-start-column="9" selection-end-line="7" selection-end-column="9" />
           <folding>
-            <element signature="e#0#20#0" expanded="true" />
-            <marker date="1536156618698" expanded="true" signature="1718:1798" ph="..." />
+            <marker date="1536232797980" expanded="true" signature="1794:1874" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="468">
-          <caret line="663" column="119" selection-start-line="663" selection-start-column="119" selection-end-line="663" selection-end-column="119" />
+        <state relative-caret-position="167">
+          <caret line="34" column="4" selection-start-line="34" selection-start-column="4" selection-end-line="34" selection-end-column="4" />
           <folding>
             <element signature="e#0#25#0" expanded="true" />
-            <marker date="1536157431511" expanded="true" signature="1378:1499" ph="..." />
-            <marker date="1536157431511" expanded="true" signature="1973:2277" ph="..." />
-            <marker date="1536157431511" expanded="true" signature="18524:18961" ph="..." />
-            <marker date="1536157431511" expanded="true" signature="19513:19744" ph="..." />
-            <marker date="1536157431511" expanded="true" signature="20936:20941" ph="..." />
-            <marker date="1536157431511" expanded="true" signature="20936:21419" ph="..." />
-            <marker date="1536157431511" expanded="true" signature="24490:24493" ph="..." />
+            <marker date="1536235632535" expanded="true" signature="1372:1493" ph="..." />
+            <marker date="1536235632535" expanded="true" signature="1967:2271" ph="..." />
+            <marker date="1536235632535" expanded="true" signature="19162:19599" ph="..." />
+            <marker date="1536235632535" expanded="true" signature="20613:20844" ph="..." />
+            <marker date="1536235632535" expanded="true" signature="22036:22041" ph="..." />
+            <marker date="1536235632535" expanded="true" signature="22036:22519" ph="..." />
+            <marker date="1536235632535" expanded="true" signature="25588:25591" ph="..." />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/requirements.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" column="20" selection-start-line="14" selection-start-column="20" selection-end-line="15" selection-end-column="15" />
         </state>
       </provider>
     </entry>
