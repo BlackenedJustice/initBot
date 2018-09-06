@@ -8,7 +8,7 @@ db = PostgresqlDatabase(  # Heroku
     'dek49hcm75f5mv',
     user='vfwefpaxjbwjtl',
     password='6d020954f2b3f8281051b10b4871f45f41eb2407b65deeffe64496abab8a12ae',
-    host='ec2-54-75-251-84.eu-west-1.compute.amazonaws.com:5432'
+    host='ec2-54-75-251-84.eu-west-1.compute.amazonaws.com'
 )
 '''
 db = PostgresqlDatabase(
