@@ -41,7 +41,6 @@ apihelper.proxy = {
 db.connect()
 db.create_tables([User, Player, Challenge])
 
-
 # create GOD if not exists
 try:
     god = User.get(User.tg_id == config.creatorID)
@@ -632,7 +631,7 @@ def add_cmd(message):
     except DoesNotExist:
         bot.send_message(kp.tg_id, 'Что-то пошло не так! Напишите @{}'.format(config.creatorUsername))
         logger.critical('No active team for @{} - {}'.format(kp.username, kp.tg_id))
-        set_next_team(kp)
+        set_next_team(kp, currentRound)
         return
     player.energy += int(l[1])
     player.save()
@@ -685,6 +684,17 @@ def release_cmd(message):
     kp.save()
     bot.send_message(kp.tg_id, 'Следующая группа - {}'.format(kp.currentTeamName))
     bot.send_message(player.tg_id, 'Ваша следующая КПшка - {}'.format(config.kp[player.race - 1][player.currentRound]))
+
+
+@bot.message_handler(commands=['help'])
+def help_cmd(message):
+    try:
+        user = User.get(User.tg_id == message.chat.id)
+    except DoesNotExist:
+        bot.send_message(message.chat.id, 'Это бот посвята ВМК МГУ 2018. Зарегистрируйтесь чтобы использовать его.\n'
+                                          'Введите команду /start чтобы начать')
+        return
+    bot.send_message(user.tg_id, config.commands[user.role])
 
 
 @bot.message_handler(content_types=['sticker'])
