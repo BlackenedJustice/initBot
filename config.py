@@ -134,8 +134,8 @@ artifacts = [['GLVH01',
              ['G315GW',
               '8RL7QX',  # Dwarfs
               '4IQ1D3'],
-             ['S26YQU',
-              'S2KUHZ',  # Elves
+             ['G26YQU',
+              'G2KUHZ',  # Elves
               'QL2OE2',
               'AJDPFP'],
              ['PHWIQS',
