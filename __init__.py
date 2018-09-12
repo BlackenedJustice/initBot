@@ -275,7 +275,7 @@ def set_duration_cmd(message):
     if len(l) < 2 or not l[1].isdigit():
         bot.send_message(message.chat.id, 'Wrong format!\n/set_duration time(minutes)')
         return
-    m = float(message.text)
+    m = float(l[1])
     timer.set_duration(m*60)
     logger.info("Reset round's duration to {} mins by {}".format(m, message.from_user.username))
     bot.send_message(message.chat.id, 'Success!')
