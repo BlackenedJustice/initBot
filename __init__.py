@@ -598,6 +598,7 @@ def next_round():
             config.kp[player.race - 1][player.currentRound]))
         player.save()
         try:
+            # TODO: DEBUG
             kp = User.get(User.currentTeamName == player.name)
         except DoesNotExist:
             logger.critical("Can't find active kp for {} - @{}".format(player.name, player.username))
@@ -606,6 +607,9 @@ def next_round():
         if kp is not None:
             bot.send_message(kp.tg_id, 'Раунд закончился, пожалуйста введите комманду /add <num> чтобы добавить '
                                        'энергию команде. Если энергии не полагается введите /add 0')
+    for kp in User.select().where(User.role == Role.KP):
+        kp.currentTeamName = set_next_team(kp, currentRound)
+        kp.save()
     currentRound += 1
     if currentRound < 10:
         timer.start(next_round)
