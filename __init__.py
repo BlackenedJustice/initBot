@@ -258,7 +258,7 @@ def make_challenge_cmd(message):
         bot.send_message(message.chat.id, 'No such user!')
         return
     # with db.atomic() as txn
-    challenge = Challenge.create(name=challenge_name, kp=kp, round=r)
+    challenge = Challenge.create(name=challenge_name, round=r)
     kp.role = Role.KP
     kp.challenge = challenge
     kp.save()
