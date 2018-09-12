@@ -581,7 +581,7 @@ def stop_cmd(message):
 @restricted(Role.GOD)
 def set_round_cmd(message):
     l = message.text.split(' ', maxsplit=1)
-    if len(l) < 2 or not l[1].is_decimal():
+    if len(l) < 2 or not l[1].isdecimal():
         bot.send_message(message.chat.id, "Wrong format!\n/set_round <num>")
     n = int(l[1])
     global currentRound
