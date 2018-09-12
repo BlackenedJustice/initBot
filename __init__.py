@@ -556,7 +556,7 @@ def balance_cmd(message):
 def begin_cmd(message):
     # TODO: Beginning of the quest
     config.dump()
-    timing.autosave()
+    # timing.autosave()
     global currentRound
     for player in Player.select().where(Player.currentRound == currentRound):
         bot.send_message(player.tg_id, 'Ваша первая КПшка - {}'.format(
