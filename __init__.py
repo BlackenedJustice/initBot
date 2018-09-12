@@ -30,7 +30,7 @@ logger.setLevel(logging.DEBUG)
 transfers = {}
 
 bot = telebot.TeleBot(token=config.token)
-
+'''
 # using proxy in Russia
 apihelper.proxy = {
     # 'http': 'http://46.101.149.132:3128',
@@ -42,7 +42,7 @@ apihelper.proxy = {
     # 'http': 'http://167.99.242.198:8080',
     # 'https': 'https://167.99.242.198:8080'
 }
-
+'''
 # create tables in db
 db.connect()
 db.create_tables([User, Player, Challenge])
