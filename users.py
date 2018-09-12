@@ -80,7 +80,7 @@ class Player(Model):
 class Challenge(Model):
     name = CharField()
     round = IntegerField(default=1)  # 1/2
-    kp = ForeignKeyField(User, backref='own_challenge', null=False)
+    kp = ForeignKeyField(User, backref='own_challenge', null=True)
     finished = BooleanField(default=False)
 
     class Meta:
