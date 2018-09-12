@@ -39,3 +39,12 @@ class Timer:
     def get_time(self):
         # TODO: Handle ending of the timer
         return time.time() - self.__startTime + self.__delta
+
+
+
+
+
+
+
+
+

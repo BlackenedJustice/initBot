@@ -3,6 +3,7 @@ from telebot import apihelper
 from peewee import DoesNotExist
 from functools import wraps
 import logging
+import pickle
 
 import telebot
 import config
@@ -13,7 +14,12 @@ from timing import Timer
 
 timer = Timer(name='Round')
 timer.set_duration(12*60)
+
+saveTimer = Timer(name='saver')
+saveTimer.set_duration(1 * 60)
+
 currentRound = 0
+FILENAME = 'time.dat'
 
 logger = logging.getLogger('bot')
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -107,7 +113,7 @@ def get_group_number(message):
         bot.register_next_step_handler(message, get_group_number)
         return
     a = int(s)
-    if (a < 101 or a > 118) and a != 141 and a != 142:
+    if (a < 101 or a > 118) and a != 141 and a != 646:
         logger.warning("Wrong number in <get_group_number> by {}".format(message.from_user.username))
         bot.send_message(message.chat.id, config.warningTooLarge)
         bot.register_next_step_handler(message, get_group_number)
@@ -292,6 +298,14 @@ def resume_cmd(message):
     everyone('ВНИМАНИЕ!\nКвест возобновлен!\nУдачи)')
 
 
+@bot.message_handler(commands=['reload'])
+@restricted(Role.GOD)
+def reload_cmd(message):
+    # TODO: restarting timer
+    config.load()
+    load()
+
+
 @bot.message_handler(commands=['time'])
 def time_cmd(message):
     t = timer.get_time()
@@ -421,6 +435,8 @@ def get_artifact(message):
         return
     if config.secondaryArtifacts.count(code):
         # TODO: Delete artifact
+        config.secondaryArtifacts.remove(code)  # Deleting artifact
+        config.dump()
         bot.send_message(player.tg_id, config.artifactSecondary)
         player.energy += config.secondaryEnergyAmount
         player.save()
@@ -539,14 +555,16 @@ def balance_cmd(message):
 @restricted(Role.GOD)
 def begin_cmd(message):
     # TODO: Beginning of the quest
+    config.dump()
+    timing.autosave()
     global currentRound
     for player in Player.select().where(Player.currentRound == currentRound):
-        bot.send_message(player.tg_id, 'Ваша следующая КПшка - {}'.format(
+        bot.send_message(player.tg_id, 'Ваша первая КПшка - {}'.format(
             config.kp[player.race - 1][player.currentRound]))
     for kp in User.select().where(User.role == Role.KP):
         kp.currentTeamName = set_next_team(kp, currentRound)
         kp.save()
-        bot.send_message(kp.tg_id, 'Следующая группа - {}'.format(kp.currentTeamName))
+        bot.send_message(kp.tg_id, 'Текущая группа - {}'.format(kp.currentTeamName))
     timer.start(next_round)
     everyone('Квест начался! Удачи!')
     logger.info('Quest has been started by @{}'.format(message.from_user.username))
@@ -705,6 +723,28 @@ def echo_sticker(message):
 @bot.message_handler(content_types=['text'])
 def echo_text(message):
     bot.send_message(message.chat.id, message.text)
+
+
+def save():
+    with open(FILENAME, 'wb') as file:
+        pickle.dump(timer, file)
+        pickle.dump(currentRound, file)
+
+
+def load():
+    logger.info("Timer loaded")
+    global timer
+    global currentRound
+    with open(FILENAME, 'rb') as file:
+        timer = pickle.load(file)
+        currentRound = pickle.load(file)
+        timer.resume()
+
+
+def autosave():
+    save()
+    logger.info("Autosave done!")
+    saveTimer.start(autosave)
 
 
 if __name__ == '__main__':
