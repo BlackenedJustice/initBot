@@ -12,8 +12,10 @@ from config import db
 from users import User, Player, Challenge, Role
 from timing import Timer
 
+default_duration = 12 * 60
+
 timer = Timer(name='Round')
-timer.set_duration(12*60)
+timer.set_duration(default_duration)
 
 saveTimer = Timer(name='saver')
 saveTimer.set_duration(1 * 60)
@@ -92,9 +94,9 @@ def start_cmd(message):
     except DoesNotExist:
         exists = False
     if exists:
-        bot.send_message(message.chat.id, 'Вы уже зарегистрированы')
+        bot.send_message(message.chat.id, config.userRegistered)
         return
-    bot.send_message(message.chat.id, "SYSTEM:\nЕсли вы не участник квеста введите команду /reg чтобы продолжить")
+    # bot.send_message(message.chat.id, "SYSTEM:\nЕсли вы не участник квеста введите команду /reg чтобы продолжить")
     bot.send_message(message.chat.id, config.greetings)
     bot.send_message(message.chat.id, config.collectGroupNumber)
     bot.register_next_step_handler(message, get_group_number)
@@ -131,6 +133,7 @@ def get_group_number(message):
 
 
 @bot.message_handler(commands=['reg'])
+# TODO: Отключить эту команду
 def reg_cmd(message):
     logger.info("Called <reg> by {}".format(message.from_user.username))
     bot.send_message(message.chat.id, config.adminsGreetings)
@@ -295,7 +298,7 @@ def pause_cmd(message):
 def resume_cmd(message):
     timer.resume()
     logger.info('Round has been resumed by @{}')
-    everyone('ВНИМАНИЕ!\nКвест возобновлен!\nУдачи)')
+    everyone('ВНИМАНИЕ!\nПриключение снова началось!\nУдачи)')
 
 
 @bot.message_handler(commands=['reload'])
@@ -304,6 +307,8 @@ def reload_cmd(message):
     # TODO: restarting timer
     config.load()
     load()
+    resume_cmd(message)
+    autosave()
 
 
 @bot.message_handler(commands=['time'])
@@ -337,6 +342,7 @@ def transfer2(message):
     except DoesNotExist:
         bot.send_message(message.chat.id, config.warningNoSuchGroup, reply_markup=types.ReplyKeyboardRemove())
         return
+    global transfers
     transfers[message.from_user.username] = recipient
     bot.send_message(message.chat.id, config.chooseTransferAmount, reply_markup=types.ReplyKeyboardRemove())
     bot.register_next_step_handler(message, transfer3)
@@ -375,8 +381,8 @@ def transfer3(message):
     recipient.energy += amount
     payer.save()
     recipient.save()
-    bot.send_message(payer.tg_id, 'Перевод совершен')
-    bot.send_message(recipient.tg_id, 'Команда {} перевела вам энергию ({})'.format(payer.name, amount))
+    bot.send_message(payer.tg_id, 'Вы передали свою энергию')
+    bot.send_message(recipient.tg_id, 'Команда {} передала вам энергию ({})'.format(payer.name, amount))
     # TODO: Here maybe will be a transition to the main part of the quest
 
 
@@ -440,6 +446,7 @@ def get_artifact(message):
         bot.send_message(player.tg_id, config.artifactSecondary)
         player.energy += config.secondaryEnergyAmount
         player.save()
+        logger.info("Secondary artifact was registered by {}".format(player.name))
         return
     exists = False
     artifact_race = 0
@@ -471,6 +478,11 @@ def get_artifact(message):
             player.finish = True
             if currentRound >= 10:
                 player.time += timer.get_time()
+                bot.send_message(player.tg_id, config.endings[player.race - 1])
+            else:
+                logger.warning("Team {} has done all purposes before 10th round!!!".format(player.name))
+                bot.send_message(player.tg_id, 'Вы завершили все свои цели до окончания квеста!\n'
+                                               'Напишите @{}'.format(config.creatorUsername))
         player.save()
         bot.send_message(player.tg_id, config.purposes[player.race - 1][player.currentPurpose - 1])
         logger.info("Team {} has reached purpose {}".format(player.name, player.currentPurpose - 1))
@@ -528,14 +540,21 @@ def get_user_cmd(message):
     ))
 
 
+@bot.message_handler(commands=['tg_id'])
+def tg_id_cmd(message):
+    bot.send_message(message.chat.id, str(message.chat.id))
+    bot.send_message(config.creatorID, '{} - id {}'.format(message.from_user.username, message.chat.id))
+
+
 @bot.message_handler(commands=['status'])
 @restricted(Role.ADMIN)
 def status_cmd(message):
-    msg = ''
+    msg = 'Status:\n'
     for player in Player.select().order_by(Player.name):
         t = player.time
         msg += '{}: {} min {} sec\n'.format(player.name, int(t // 60), t % 60)
     bot.send_message(message.chat.id, msg)
+    logger.info("<status> called by {}".format(message.from_user.username))
 
 
 @bot.message_handler(commands=['balance'])
@@ -556,17 +575,21 @@ def balance_cmd(message):
 def begin_cmd(message):
     # TODO: Beginning of the quest
     config.dump()
-    # timing.autosave()
+    autosave()
     global currentRound
-    for player in Player.select().where(Player.currentRound == currentRound):
-        bot.send_message(player.tg_id, 'Ваша первая КПшка - {}'.format(
-            config.kp[player.race - 1][player.currentRound]))
+    currentRound = 0
+    timer.set_duration(default_duration)
+    for player in Player.select():
+        player.currentRound = 0
+        player.save()
+        bot.send_message(player.tg_id, config.nextKpName.format(
+            config.kp_rus.get(config.kp[player.race - 1][0], default=config.kp[player.race - 1][0])))
     for kp in User.select().where(User.role == Role.KP):
-        kp.currentTeamName = set_next_team(kp, currentRound)
+        kp.currentTeamName = set_next_team(kp, 0)
         kp.save()
         bot.send_message(kp.tg_id, 'Текущая группа - {}'.format(kp.currentTeamName))
     timer.start(next_round)
-    everyone('Квест начался! Удачи!')
+    everyone('Приключение началось! Удачи!')
     logger.info('Quest has been started by @{}'.format(message.from_user.username))
 
 
@@ -586,6 +609,8 @@ def set_round_cmd(message):
     n = int(l[1])
     global currentRound
     currentRound = n
+    logger.info("Current round has been set to {} by @{}".format(n, message.from_user.username))
+    bot.send_message(message.chat.id, 'Success!')
 
 
 def next_round():
@@ -594,12 +619,15 @@ def next_round():
         player.time += timer.get_duration()  # Maximal time
         player.currentRound += 1
         bot.send_message(player.tg_id, config.endingOfRound)
-        bot.send_message(player.tg_id, 'Ваша следующая КПшка - {}'.format(
-            config.kp[player.race - 1][player.currentRound]))
+        if player.currentRound <= 9:
+            bot.send_message(player.tg_id, config.nextKpName.format(
+                config.kp_rus.get(config.kp[player.race - 1][player.currentRound],
+                                  default=config.kp[player.race - 1][player.currentRound])))
         player.save()
         try:
-            # TODO: DEBUG
-            kp = User.get(User.currentTeamName == player.name)
+            kp = User.get(User.role == Role.KP and User.challenge.round == player.round and User.challenge.name ==
+                          config.kp[player.race - 1][player.currentRound])
+            # kp = User.get(User.currentTeamName == player.name)
         except DoesNotExist:
             logger.critical("Can't find active kp for {} - @{}".format(player.name, player.username))
             bot.send_message(config.creatorID, "Can't find active kp for {} - @{}".format(player.name, player.username))
@@ -607,35 +635,39 @@ def next_round():
         if kp is not None:
             bot.send_message(kp.tg_id, 'Раунд закончился, пожалуйста введите комманду /add <num> чтобы добавить '
                                        'энергию команде. Если энергии не полагается введите /add 0')
-    for kp in User.select().where(User.role == Role.KP):
-        kp.currentTeamName = set_next_team(kp, currentRound)
-        kp.save()
+    if currentRound < 9:
+        for user_kp in User.select().where(User.role == Role.KP and User.currentTeamName == 'waiting'):
+            user_kp.currentTeamName = set_next_team(user_kp, currentRound + 1)
+            user_kp.save()
     currentRound += 1
+    logger.info("Round {} has started".format(currentRound))
     if currentRound < 10:
         timer.start(next_round)
     else:
-        timer.set_duration(30*60)
+        everyone(config.startChanging)
+        timer.set_duration(60*60)
         timer.start(ending)
 
 
 def ending():
     # TODO: Ending
-    everyone('Квест завершен! Всем спасибо за участие!\nИтоги квеста будут объявлены после окончания посвята')
     for player in Player.select().where(not Player.finish):
+        bot.send_message(player.tg_id, config.game_over)
         player.time += timer.get_duration()
         player.save()
-    msg = ''
+    msg = 'Final results:\n'
     for player in Player.select().order_by(Player.time.desc()):
         t = player.time
         msg += '{}: {} min {} sec\n'.format(player.name, int(t // 60), t % 60)
     bot.send_message(config.creatorID, msg)
+    everyone(config.globalEnd)
 
 
 @bot.message_handler(commands=['add'])
 @restricted(Role.KP)
 def add_cmd(message):
     l = message.text.split(' ', maxsplit=1)
-    if len(l) < 2 or not l[1].is_decimal():
+    if len(l) < 2 or not l[1].isdecimal():
         bot.send_message(message.chat.id, 'Wrong format!\n/add <num>')
         return
     try:
@@ -663,6 +695,9 @@ def add_cmd(message):
 
 
 def set_next_team(kp, round):
+    if round < 0 or round > 9:
+        logger.error("Wrong round {} in <set_next_team>".format(round))
+        return '-2'
     name = kp.challenge.name
     r = kp.challenge.round
     for player in Player.select().where(Player.round == r):
@@ -688,8 +723,8 @@ def release_cmd(message):
         kp = User.get(User.tg_id == message.chat.id)
     except DoesNotExist:
         logger.error("Can't find @{} - {} in database".format(message.from_user.username, message.chat.id))
-        bot.send_message(message.chat.id, 'Что-то пошло не так. Напишите номер группы и текущее время @{}'.format(
-            config.creatorUsername))
+        bot.send_message(message.chat.id, 'Что-то пошло не так. Вас нет в базе.'
+                                          ' Напишите номер группы и текущее время @{}'.format(config.creatorUsername))
         return
     try:
         player = Player.get(Player.name == kp.currentTeamName)
@@ -702,10 +737,16 @@ def release_cmd(message):
     player.time += t
     player.currentRound += 1
     player.save()
-    kp.currentTeamName = set_next_team(kp, player.currentRound)
+    kp.currentTeamName = 'waiting'
+    # kp.currentTeamName = set_next_team(kp, player.currentRound)
     kp.save()
-    bot.send_message(kp.tg_id, 'Следующая группа - {}'.format(kp.currentTeamName))
-    bot.send_message(player.tg_id, 'Ваша следующая КПшка - {}'.format(config.kp[player.race - 1][player.currentRound]))
+    bot.send_message(kp.tg_id, "Успешно! Ждите конца раунда\n/time покажет вам время с момента начала раунда")
+    if player.currentRound <= 9:
+        bot.send_message(player.tg_id, config.nextKpName.format(
+            config.kp_rus.get(config.kp[player.race - 1][player.currentRound],
+                              default=config.kp[player.race - 1][player.currentRound])))
+    else:
+        bot.send_message(player.tg_id, 'Поздравляю вас! Вы прошли все испытания! Дождитесь конца раунда')
 
 
 @bot.message_handler(commands=['help'])
